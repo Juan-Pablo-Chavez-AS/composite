@@ -4,25 +4,144 @@
     {
         public static void Main(string[] args)
         {
-            // Create a tree structure
-            Composite root = new Composite("root");
-            root.Add(new Leaf("Leaf A"));
-            root.Add(new Leaf("Leaf B"));
-            Composite comp = new Composite("Composite X");
-            comp.Add(new Leaf("Leaf XA"));
-            comp.Add(new Leaf("Leaf XB"));
-            root.Add(comp);
-            root.Add(new Leaf("Leaf C"));
-            // Add and remove a leaf
-            Leaf leaf = new Leaf("Leaf D");
-            root.Add(leaf);
-            root.Remove(leaf);
-            // Recursively display tree
-            root.Display(1);
-            // Wait for user
+            Booster boosterBundle = new CompositeBooster(3);
+            Booster damageBooster = new DamageBooster(5);
+            Booster strengthBooster = new StrengthBooster(3);
+            Booster magicBooster = new MagicBooster(5);
+
+            boosterBundle.Add(magicBooster);
+            boosterBundle.Add(damageBooster);
+            boosterBundle.Add(strengthBooster);
+
+            Console.WriteLine(boosterBundle.GetBoostAsString());
+
+            Console.WriteLine("Single boosts");
+            damageBooster.Add(magicBooster);
+            Console.WriteLine(damageBooster.GetBoostAsString());
+            Console.WriteLine(magicBooster.GetBoostAsString());
+            Console.WriteLine(strengthBooster.GetBoostAsString());
+
             Console.ReadKey();
         }
     }
+
+    public abstract class Booster // Used to be an interface, but the AsString Method appeared
+    {
+        public abstract List<Tuple<string, int>> GetBoost();
+        public abstract bool Add(Booster c);
+
+        public string GetBoostAsString()
+        {
+            List<Tuple<string, int>> boosts = GetBoost();
+            string boostsAsString = "";
+            foreach (Tuple<string, int> boost in boosts)
+            {
+                boostsAsString += boost.Item1 + " +" + boost.Item2 + "\n";
+            }
+
+            return boostsAsString;
+        }
+    }
+
+    public abstract class SimpleBooster : Booster // Made for DRY purposes
+    {
+        public override bool Add(Booster c)
+        {
+            Console.WriteLine("Cannot add booster to simple booster");
+            return false;
+        }
+    }
+
+    public class DamageBooster : SimpleBooster
+    {
+        private static readonly string STAT_KEY = "damage";
+        private List<Tuple<string, int>> boost;
+
+        public DamageBooster(int value)
+        {
+            this.boost = new List<Tuple<string, int>>
+            {
+                new Tuple<string, int>(STAT_KEY, value)
+            }; //weird
+        }
+        public override List<Tuple<string, int>> GetBoost()
+        {
+            return this.boost;
+        }
+
+        public override bool Add(Booster c)
+        {
+            Console.WriteLine("Cannot add to simple booster");
+            return false;
+        }
+    }
+
+    public class StrengthBooster : SimpleBooster
+    {
+        private static readonly string STAT_KEY = "strength";
+        private List<Tuple<string, int>> boost;
+
+        public StrengthBooster(int value)
+        {
+            this.boost = new List<Tuple<string, int>>
+            {
+                new Tuple<string, int>(STAT_KEY, value)
+            };
+        }
+        public override List<Tuple<string, int>> GetBoost()
+        {
+            return this.boost;
+        }
+    }
+
+    public class MagicBooster : SimpleBooster
+    {
+        private static readonly string STAT_KEY = "magic";
+        private List<Tuple<string, int>> boost;
+
+        public MagicBooster(int value)
+        {
+            this.boost = new List<Tuple<string, int>>
+            {
+                new Tuple<string, int>(STAT_KEY, value)
+            };
+        }
+        public override List<Tuple<string, int>> GetBoost()
+        {
+            return this.boost;
+        }
+    }
+
+    public class CompositeBooster: Booster
+    {
+        public readonly int compositeLimit;
+        protected List<Booster> boosters;
+
+        public CompositeBooster(int limit)
+        {
+            this.compositeLimit = limit;
+            boosters = new List<Booster>(limit);
+        }
+
+        public override bool Add(Booster booster)
+        {
+            if (boosters.Count == this.compositeLimit) {
+                return false;
+            }
+            boosters.Add(booster);
+            return true;
+        }
+
+        public override List<Tuple<string, int>> GetBoost()
+        {
+            List<Tuple<string, int>> result = new List<Tuple<string, int>>();
+            foreach (Booster boost in boosters) {
+                result.AddRange(boost.GetBoost());
+            }
+            return result;
+        }
+    }
+    /*
     /// <summary>
     /// The 'Component' abstract class
     /// </summary>
@@ -87,5 +206,5 @@
                 component.Display(depth + 2);
             }
         }
-    }
+    }*/
 }
